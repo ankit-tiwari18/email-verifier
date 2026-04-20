@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Validator Pro - Turbo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900">
+
+    <nav class="bg-white border-b border-slate-200 py-4 px-10 flex justify-between items-center shadow-sm">
+        <h1 class="text-2xl font-black text-blue-600 tracking-tighter">TURBO<span class="text-slate-400">VALIDATOR</span></h1>
+        <a href="/download" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-100 transition">Download Results</a>
+    </nav>
+
+    <div class="max-w-4xl mx-auto py-16 px-6">
+        <div class="bg-white shadow-2xl rounded-3xl p-8 border border-slate-100">
+            <h2 class="text-2xl font-bold mb-6">Validate Email Address</h2>
+            
+            <div class="flex gap-4 mb-8">
+                <input type="text" id="emailInput" placeholder="e.g. ankithzp@gmail.com" 
+                       class="flex-1 p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition">
+                <button onclick="validate()" id="singleBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-10 rounded-2xl font-bold shadow-lg shadow-blue-200">
+                    Check
+                </button>
+            </div>
+
+            <div id="resultArea" class="hidden border-t border-slate-100 pt-8">
+                <div class="grid grid-cols-4 gap-4 text-center">
+                    <div class="p-4 bg-slate-50 rounded-2xl">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Status</p>
+                        <p id="resStatus" class="font-bold mt-1"></p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-2xl">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Syntax</p>
+                        <p id="resSyntax" class="mt-1"></p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-2xl">
+                        <p class="text-xs font-bold text-slate-400 uppercase">DNS/MX</p>
+                        <p id="resDNS" class="mt-1"></p>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-2xl">
+                        <p class="text-xs font-bold text-slate-400 uppercase">SMTP</p>
+                        <p id="resSMTP" class="mt-1"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+            <div class="relative z-10">
+                <h3 class="text-xl font-bold mb-2">Bulk High-Speed Upload</h3>
+                <p class="text-slate-400 text-sm mb-6">Process up to 50 emails simultaneously in parallel threads.</p>
+                <input type="file" id="fileInput" class="hidden">
+                <button onclick="document.getElementById('fileInput').click()" class="bg-slate-800 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-700 border border-slate-700">Choose File</button>
+                <button onclick="bulkValidate()" id="bulkBtn" class="bg-blue-500 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-400 ml-2">Start Turbo Scan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function validate() {
+            const email = document.getElementById('emailInput').value;
+            const btn = document.getElementById('singleBtn');
+            if(!email) return;
+
+            btn.innerText = "Checking...";
+            const res = await fetch('/verify-single', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email})
+            });
+            const data = await res.json();
+
+            document.getElementById('resultArea').classList.remove('hidden');
+            document.getElementById('resStatus').innerText = data.status;
+            document.getElementById('resStatus').className = `font-bold mt-1 ${data.color === 'green' ? 'text-green-500' : 'text-red-500'}`;
+            document.getElementById('resSyntax').innerText = data.syntax;
+            document.getElementById('resDNS').innerText = data.dns;
+            document.getElementById('resSMTP').innerText = data.smtp;
+            btn.innerText = "Check";
+        }
+
+        async function bulkValidate() {
+            const file = document.getElementById('fileInput').files[0];
+            const btn = document.getElementById('bulkBtn');
+            if(!file) return alert("Select file");
+            
+            btn.innerText = "🚀 Processing Parallel Threads...";
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const res = await fetch('/bulk-verify', { method: 'POST', body: formData });
+            const data = await res.json();
+            
+            alert(`TURBO SCAN COMPLETE\nTotal: ${data.total}\nDeliverable: ${data.valid}`);
+            btn.innerText = "Start Turbo Scan";
+        }
+    </script>
+</body>
+</html>
